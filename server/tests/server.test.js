@@ -18,7 +18,6 @@ describe(`POST /todos`,() =>{
    supertest(app)
    .post(`/todos`)
    .send({text})
-
    .expect(200)
    .expect((res)=>{
      expect(res.body.text).toBe(text);
