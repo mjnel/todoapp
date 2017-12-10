@@ -6,14 +6,25 @@ const {app} = require("./../server");
 const {Todo} = require("./../models/todo");
 
 
+const todos = [
+  {
+    text: "firstTestToDo"
+  },
+  {
+    text:"secondToDo"
+  }
+]
+
 beforeEach ((done)=>{
-  Todo.remove({}).then(()=> done())
+  Todo.remove({}).then(()=> {
+    return Todo.insertMany(todos);
+  }).then(()=> done())
 })
+
 
 describe(`POST /todos`,() =>{
  it(`should create a new todo`,(done)=>{
    var text = "Test todo text"
-
 
    supertest(app)
    .post(`/todos`)
@@ -26,17 +37,30 @@ describe(`POST /todos`,() =>{
   if(err){
     return done(err)
   }
-
-  Todo.find().then((todos)=>{
+  Todo.find({text}).then((todos)=>{
     expect(todos.length).toBe(1);
     expect(todos[0].text).toBe(text);
     done()
   }).catch((e)=> done(e))
-
+})
 })
 
 
- })
+it(`should not create a todo with invalid data`,(done)=>{
+supertest(app)
+  .post(`/todos`)
+  .send({})
+  .expect(400)
+  .end((err, res)=>{
+    if(err){
+      return done (err)
+    }
+  Todo.find().then((todos)=>{
+      expect(todos.length).toBe(2)
+      done()
+    }).catch((e)=> done(e))
 
 
+  })
+})
 });
