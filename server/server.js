@@ -38,8 +38,9 @@ app.get(`/todos`, (req,res)=>{
 
 
 
-app.listen(3000, ()=>{
-    console.log(`up on port 3000`)
+app.listen (process.env.PORT, process.env.IP, function (){
+    console.log("server started");
 })
+
 
 module.exports ={app}
