@@ -60,7 +60,23 @@ supertest(app)
       done()
     }).catch((e)=> done(e))
 
-
-  })
+    })
 })
 });
+
+
+
+
+describe(`GET /todos`,() =>{
+ it(`should get all the todos`,(done)=>{
+
+   supertest(app)
+   .get(`/todos`)
+   .expect(200)
+   .expect((res)=>{
+     expect(res.body.todos.length).toBe(2);
+   })
+.end(done)
+   
+ })
+})
