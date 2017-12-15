@@ -19,19 +19,18 @@ return console.log(err);
 }
 console.log(`connected to mongodb`)
 
-// db.collection(`Todos`).insertOne({
-//   text: `something to do`,
-//   completed: false
-//
-// }, (err, res)=>{
-//   if (err){
-//     return console.log(`unable to insert to do`, err)
-//   }
-//
-// //.ops will return all docs inserted so one document
-// console.log(JSON.stringify(res.ops, undefined, 2));
-//
-// })
+db.collection(`user`).insertOne({
+  email: "keri_nelson@live.co.uk"
+
+}, (err, res)=>{
+  if (err){
+    return console.log(`unable to insert to do`, err)
+  }
+
+//.ops will return all docs inserted so one document
+console.log(JSON.stringify(res.ops, undefined, 2));
+
+})
 
 
 //insert ne doc into users collection, (name age location)

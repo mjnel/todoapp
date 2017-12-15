@@ -5,8 +5,6 @@ var randomNumber = Math.round(Math.random() * 100);
 
 let  firstMethod = () =>{
   return new Promise ((resolve, reject)=>{
-
-
     if (randomNumber >= 2){
       setTimeout(()=>{
           return resolve(randomNumber);
