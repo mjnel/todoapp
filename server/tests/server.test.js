@@ -74,7 +74,7 @@ describe(`GET /todos`,() =>{
    .get(`/todos`)
    .expect(200)
    .expect((res)=>{
-     expect(res.body.todos.length).toBe(2);
+      expect(res.body.todos.length).toBe(2);
    })
 .end(done)
    
