@@ -1,10 +1,12 @@
-var express = require("express");
-var bodyParser = require ("body-parser")
+const express = require("express");
+const bodyParser = require ("body-parser")
 
 // object destructing - creating a local variable from the mongoose property on the object
 var {mongoose}= require("./db/mongoose");
 var {Todo}= require("./models/todo");
 var {User}= require("./models/user");
+const {ObjectID} = require("mongodb");
+
 
 var app = express();
 
@@ -34,6 +36,49 @@ app.get(`/todos`, (req,res)=>{
     res.status(400).send(e)
   })
 })
+
+
+app.get(`/todos/:id`, (req, res)=>{
+  var id = req.params.id
+  if(!isValidID(id)){
+    console.log("incorrect ID")
+    res.status(404).send({})
+    
+  }else{
+      console.log("correct ID")
+      Todo.findById(id).then((todo)=>{
+        if(!todo){
+          res.status(404).send({})
+        }
+        res.status(200).send(todo)
+  }).catch((e)=>{
+        res.status(404).send({})
+        })
+  }
+})
+  
+  
+
+
+
+
+
+
+
+
+//FUNCTIONS
+
+let isValidID = (id)=> {  
+    if (!ObjectID.isValid(id)){
+      return (false)
+    }else{
+     return (true)
+    }
+}
+
+
+
+  
 
 
 
