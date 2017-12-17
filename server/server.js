@@ -41,13 +41,13 @@ app.get(`/todos`, (req,res)=>{
 app.get(`/todos/:id`, (req, res)=>{
   var id = req.params.id
   if(!isValidID(id)){
-    console.log("incorrect ID")
+    console.log("The ID you are requesting with is invalid")
     res.status(404).send({})
     
   }else{
-      console.log("correct ID")
       Todo.findById(id).then((todo)=>{
         if(!todo){
+          console.log("the ID you are requesting with is not in the DB")
           res.status(404).send({})
         }
         res.status(200).send(todo)
