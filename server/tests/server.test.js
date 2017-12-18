@@ -115,7 +115,14 @@ describe(`GET /todos/:id`, ()=>{
       .end(done);
   });
   
+    it('should return 404 for an invalid ObjectID', (done) => {
+     supertest(app)
+      .get(`/todos/123`)
+      .expect(404)
+      .end(done);
+  });
   
+
 
 })
 
