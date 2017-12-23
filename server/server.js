@@ -42,20 +42,41 @@ app.get(`/todos/:id`, (req, res)=>{
   var id = req.params.id
   if(!isValidID(id)){
     console.log("The ID you are requesting with is invalid")
-    res.status(404).send({})
+    return res.status(404).send({})
+    }
     
-  }else{
       Todo.findById(id).then((todo)=>{
         if(!todo){
           console.log("the ID you are requesting with is not in the DB")
-          res.status(404).send({})
+         return  res.status(404).send({})
         }
         res.status(200).send(todo)
-  }).catch((e)=>{
+        }).catch((e)=>{
         res.status(404).send({})
-        })
-  }
-})
+      })
+    })
+  
+  
+  app.delete(`/todos/:id`, (req, res)=>{
+    var id = req.params.id
+    if(!isValidID(id)){
+      console.log("The ID you are requesting with is invalid")
+     return res.status(404).send({})}
+      
+       Todo.findByIdAndRemove(id).then((removedTodo)=>{
+         if(!removedTodo){
+           console.log("the ID you are requesting with is not in the DB")
+          return res.status(404).send({})
+         }
+        res.status(200).send(removedTodo)
+       }).catch((e)=>{
+         console.log(e)
+         res.status(400).send({})
+       })  
+        
+      
+  })
+  
   
   
 
