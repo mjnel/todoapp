@@ -20,7 +20,9 @@ const todos = [
   }
 ]
 
-beforeEach ((done)=>{
+
+// before each test case - do this
+beforeEach((done)=>{
   Todo.remove({}).then(()=> {
     return Todo.insertMany(todos);
   }).then(()=> done())
@@ -107,7 +109,7 @@ describe(`GET /todos/:id`, ()=>{
             .end(done)
     })
     
-      it('should return 404 if todo not found - Site', (done) => {
+      it('should return 404 if todo not found', (done) => {
     var hexId = new ObjectID().toHexString();
      supertest(app)
       .get(`/todos/${hexId}`)
@@ -122,12 +124,53 @@ describe(`GET /todos/:id`, ()=>{
       .end(done);
   });
   
+})
 
+
+describe(`DELETE /todos/:id`, ()=>{
+
+    it(`should delete a todo document`,(done)=>{
+        var hexID = todos[0]._id.toHexString();
+        supertest(app)
+        .delete(`/todos/${hexID}`)
+        .expect(200)
+        .expect((res)=>{
+            expect(res.body.todo._id).toBe(hexID);    
+            })
+            .end((err, res)=>{
+                if(err){
+                    return done(err)
+                }
+                Todo.findById(hexID).then((todo_del)=>{
+                    expect(todo_del).toNotExist()
+                    done()
+                }).catch((e)=>{
+                    done(e)
+                })
+            })
+    })
+    
+    
+    //done is a Mocha thing 
+    //end is a supertest thing
+    
+    it(`should return a 404 for a Todo which isn't in the db`, (done)=>{
+        var hexID = new ObjectID()
+        supertest(app)
+        .delete(`/todos/${hexID}`)
+        .expect(404)
+        .end(done)
+    })
+    
+    it(`should return a 404 for a Todo which isn't correct`, (done)=>{
+        supertest(app)
+        .delete(`/todos/123`)
+        .expect(404)
+        .end(done)
+    })
 
 })
 
 
-   // it should retuen 404 for non object id 
-    //todos/123 
-    //make sure get 404
-    
+
+
