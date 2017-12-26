@@ -1,5 +1,6 @@
 const express = require("express");
 const bodyParser = require ("body-parser")
+const _ = require("lodash") 
 
 // object destructing - creating a local variable from the mongoose property on the object
 var {mongoose}= require("./db/mongoose");
@@ -73,10 +74,44 @@ app.get(`/todos/:id`, (req, res)=>{
          console.log(e)
          res.status(400).send({})
        })  
-        
-      
   })
   
+  
+  
+app.patch(`/todos/:id`, (req,res)=>{
+  var id = req.params.id
+  
+  // pick = takes an object and takes an array of properties 
+  //subset of the things the user passed to us - we don't want the user to update anything they choose 
+  var body = _.pick(req.body, [`text`, `completed`])
+     
+      if(!isValidID(id)){
+      console.log("The ID you are requesting with is invalid")
+      return res.status(404).send({})}
+     
+      if(_.isBoolean(body.completed)&&body.completed){
+         body.completedAt= new Date().getTime();
+     }else{
+       body.completed = false; 
+       body.completedAt = null; 
+     }
+     
+     // $set means set the id which is found by the findbyidandupsdate 
+     //new returns the newly updated document
+     Todo.findByIdAndUpdate(id,{$set: body}, {new: true}).then((updatedToDo)=>{
+       if(!updatedToDo){
+          return res.status(404).send({})
+       }
+       res.send({updatedToDo})
+     }).catch((e)=>{
+       console.log(e)
+       res.status(400).send({});
+     })
+     
+
+     
+  
+})
   
   
 
@@ -97,9 +132,6 @@ let isValidID = (id)=> {
     }
 }
 
-
-
-  
 
 
 
