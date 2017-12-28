@@ -92,28 +92,55 @@ app.patch(`/todos/:id`, (req,res)=>{
       if(_.isBoolean(body.completed)&&body.completed){
          body.completedAt= new Date().getTime();
      }else{
-       body.completed = false; 
-       body.completedAt = null; 
+      body.completed = false; 
+      body.completedAt = null; 
      }
      
      // $set means set the id which is found by the findbyidandupsdate 
      //new returns the newly updated document
      Todo.findByIdAndUpdate(id,{$set: body}, {new: true}).then((updatedToDo)=>{
-       if(!updatedToDo){
+      if(!updatedToDo){
           return res.status(404).send({})
-       }
-       res.send({updatedToDo})
+      }
+      res.send({updatedToDo})
      }).catch((e)=>{
-       console.log(e)
-       res.status(400).send({});
+      console.log(e)
+      res.status(400).send({});
      })
-     
-
-     
-  
 })
   
   
+// question on UDMEMY
+
+// app.patch(`/todos/:id`, (req,res)=>{
+//       var id = req.params.id
+//       var body = req.body;
+//       if(!isValidID(id)){
+//       console.log("The ID you are requesting with is invalid")
+//       return res.status(404).send({})}
+      
+//       if(body.completed){
+//          body.completedAt= new Date().getTime();
+//      }else{
+//       body.completed = false; 
+//       body.completedAt = null; 
+//      }
+//      console.log(body)
+     
+//      // $set means set the id which is found by the findbyidandupsdate 
+//      //new returns the newly updated document
+//      Todo.findByIdAndUpdate(id,{$set: body}, {new: true}).then((updatedToDo)=>{
+//       if(!updatedToDo){
+//           return res.status(404).send({})
+//       }
+//       res.send({updatedToDo})
+//      }).catch((e)=>{
+//       console.log(e)
+//       res.status(400).send({});
+//      })
+    
+    
+// })
 
 
 
