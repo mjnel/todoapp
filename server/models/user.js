@@ -37,13 +37,15 @@ var UserSchema  = new mongoose.Schema({
         }]
 })
 
-//instance method - per document 
+//instance method - per document + no arrow to bind this 
 UserSchema.methods.generateAuthToken = function (){
 
 var access = "auth";
 
 var token = jwt.sign({_id: this._id.toHexString(), access}, `abc123`).toString();
 this.tokens.push({access, token});
+
+
 return this.save().then(()=>{
     return token
 })
@@ -55,8 +57,6 @@ return this.save().then(()=>{
 UserSchema.methods.toJSON = function(){
    var user = this;
    var userObject = user.toObject();
-   
-   
    return _.pick(userObject, ['_id', 'email']); 
    
    
