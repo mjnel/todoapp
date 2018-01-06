@@ -2,7 +2,8 @@ require(`./config/config.js`);
 
 const express = require("express");
 const bodyParser = require ("body-parser")
-const _ = require("lodash") 
+const _ = require("lodash"); 
+const authenticate = require('./middleware/auth');
 
 // object destructing - creating a local variable from the mongoose property on the object
 var {mongoose}= require("./db/mongoose");
@@ -133,6 +134,12 @@ app.post(`/users`, (req,res)=>{
 
 
 
+app.get(`/users/me`, authenticate, (req, res)=>{
+    res.send(req.user)
+})
+
+
+
 
 
 
@@ -151,7 +158,7 @@ let isValidID = (id)=> {
 
 
 app.listen (process.env.PORT, process.env.IP, function (){
-    console.log("Server up!");
+    console.log("Server up @ todoapp-mjnelson.c9users.io");
 })
 
 

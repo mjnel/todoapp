@@ -42,7 +42,7 @@ const jwt = require("jsonwebtoken");
 // jwt.veriry
 
 var data = {
-    id: "i love you"
+    id: "test"
 
 }
 //takes data you want to hash and the secret - returns a token 
@@ -50,5 +50,5 @@ var data = {
 var token = jwt.sign(data, '123abc')
 console.log(token); 
 
-// var decoded = jwt.verify(token, '123abc')
+var decoded = jwt.verify(token, '123abc')
 // console.log('decoded', decoded)

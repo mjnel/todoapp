@@ -37,11 +37,12 @@ var UserSchema  = new mongoose.Schema({
         }]
 })
 
+
+
 //instance method - per document + no arrow to bind this 
+// this = individual document
 UserSchema.methods.generateAuthToken = function (){
-
 var access = "auth";
-
 var token = jwt.sign({_id: this._id.toHexString(), access}, `abc123`).toString();
 this.tokens.push({access, token});
 
@@ -51,16 +52,46 @@ return this.save().then(()=>{
 })
 }
    
+// Model Method
+// this - Model as the this binding
+UserSchema.statics.findByToken = function(token){
+   var User =  this;
+   var decoded;
+ 
+ //allows code to be ran in the try block, if any errors, then run the catch code and contintue
+   try {
+      decoded = jwt.verify(token, `abc123`);
+      
+   }   catch(e){
+       
+       return Promise.reject();
+
+       
+   }
+
+// reason why we are searching on more than one is if a user has more than one token
+
+    return User.findOne({
+        _id: decoded._id,
+        'tokens.token': token,
+        'tokens.access': "auth"
+    });
+
+
+}
+
+   
 
 // Overriding method that dertermines what get sent back when a ongoose model is converted into JSON 
-    
 UserSchema.methods.toJSON = function(){
    var user = this;
    var userObject = user.toObject();
    return _.pick(userObject, ['_id', 'email']); 
-   
-   
 }
+
+
+
+
 
 
 
