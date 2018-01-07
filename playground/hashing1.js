@@ -13,8 +13,8 @@ var token = {
 
 //man in the middle
 // not got access to the same salt 
-// token.data.id = 5;
-// token.hash = MD5(JSON.stringify(token.data)).toString(); 
+token.data.id = 5;
+token.hash = MD5(JSON.stringify(token.data)).toString(); 
 
 
 

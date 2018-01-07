@@ -2,6 +2,8 @@ const mongoose = require("mongoose");
 const validator = require("validator");
 const jwt = require("jsonwebtoken");
 const _ = require("lodash");
+const bcrypt = require("bcryptjs")
+
 
 //unique - property email does not have same email as any other documents in the collection 
 // validator
@@ -90,7 +92,23 @@ UserSchema.methods.toJSON = function(){
 }
 
 
+// mongoose middleware 
+UserSchema.pre('save', function(next){
+    var user = this;
+    if(user.isModified('password')){
+    bcrypt.genSalt(10, (err, salt)=>{
+    bcrypt.hash(user.password, salt, (err, hash)=>{
+        user.password = hash;
+        console.log("got here"); 
+        next();
+    
+    })
+})
 
+    }else{
+        next();
+    }
+})
 
 
 
