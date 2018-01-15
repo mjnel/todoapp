@@ -6,19 +6,19 @@ var password = "123abc!";
 // salt built into the hash value
 
 
-// bcrypt.genSalt(10, (err, salt)=>{
-//     console.log(salt);
-//     bcrypt.hash(password, salt, (err, hash)=>{
-//         console.log(hash);
-//     })
-// })
-
-var hashedpass = "$2a$10$ab4Js/fcAyZ/ZXfqh8fx9.9hqZfnBlDiahSfXm5iR3EhFkNguRM0e"      
-
-
-bcrypt.compare(password, hashedpass, (err, res)=>{
-    console.log(res)
+bcrypt.genSalt(10, (err, salt)=>{
+    console.log(salt);
+    bcrypt.hash(password, salt, (err, hash)=>{
+        console.log(hash);
+    })
 })
+
+// var hashedpass = "$2a$10$ab4Js/fcAyZ/ZXfqh8fx9.9hqZfnBlDiahSfXm5iR3EhFkNguRM0e"      
+
+
+// bcrypt.compare(password, hashedpass, (err, res)=>{
+//     console.log(res)
+// })
 
 
 

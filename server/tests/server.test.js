@@ -1,34 +1,19 @@
 const expect  = require ("expect");
 const supertest =  require("supertest");
-
+const {ObjectID} = require("mongodb");
 
 const {app} = require("./../server");
 const {Todo} = require("./../models/todo");
-const {ObjectID} = require("mongodb");
+const {User} = require("./../models/user");
+const {todos, populateToDos, users, populateUsers} = require ("./seed/seed");
 
+ 
 //**************************************
 
 
-const todos = [
-  {
-     _id: new ObjectID(),
-    text: "firstTestToDo"
-  },
-  {
-    _id: new ObjectID(),
-    text:"secondToDo",
-    completed: true,
-    completedAt: 3333
-  }
-]
-
-
-// before each test case - do this
-beforeEach((done)=>{
-  Todo.remove({}).then(()=> {
-    return Todo.insertMany(todos);
-  }).then(()=> done())
-})
+// before each test case (before each it block) 
+beforeEach(populateUsers)
+beforeEach(populateToDos)
 
 
 describe(`POST /todos`,() =>{
@@ -79,12 +64,12 @@ supertest(app)
 describe(`GET /todos`,() =>{
  it(`should get all the todos`,(done)=>{
 
-   supertest(app)
-   .get(`/todos`)
-   .expect(200)
-   .expect((res)=>{
+  supertest(app)
+  .get(`/todos`)
+  .expect(200)
+  .expect((res)=>{
       expect(res.body.todos.length).toBe(2);
-   })
+  })
 .end(done)
    
  })
@@ -235,10 +220,100 @@ describe(`PATCH/todos/:id`, ()=>{
 
     })
     
- 
-    
-    
+    describe(`GET/users/me`,()=>{
+        
+        it(`should return user if authenticated`, (done)=>{
+            supertest(app)
+            .get(`/users/me`)
+            //.set = 1st arg is header name and 2nd is header value
+            .set(`x-auth`, users[0].tokens[0].token)
+            .expect(200)
+            .expect((res)=>{
+                expect(res.body._id).toBe(users[0]._id.toHexString())
+                expect(res.body.email).toBe(users[0].email)
+            })
+            .end(done)
+        })
+      
+      
+        
+        
+        it(`should return a 401 if not authenticated`, (done)=>{
+            supertest(app)
+            .get(`/users/me`)
+            .expect(401)
+            .expect((res)=>{
+                expect(res.body).toEqual({})
+            })
+            .end(done)
 
+        })
+        
+    })
+    
+    
+    describe(`POST /users`, ()=>{
+        
+        it(`should create a user`,(done)=>{
+        var email = "mark_nelson@live.co.uk"
+        var password = "password1234"
+            
+        supertest(app)
+        .post(`/users`)
+        .send({email, password})
+        .expect(200)
+        .expect((res)=>{
+            expect(res.headers[`x-auth`]).toExist();
+            expect(res.body._id).toExist();
+            expect(res.body.email).toEqual("mark_nelson@live.co.uk")
+        })
+        .end((err)=>{
+            if(err){
+                return done(err)
+            }
+            User.findOne({email}).then((user)=>{
+                expect(user).toExist();
+                expect(user.password).toNotBe(password);
+                done();
+            })
+            
+            
+        })
+        })
+        
+        
+        
+        
+        
+        it(`should return valiation errors if request is invalid`,(done)=>{
+            var email = "test";
+            supertest(app)
+            .post(`/users/`)
+            .send({email: "adn",
+                    password: "123"
+            })
+            .expect(400)
+            .end(done)
+            })
+            
+        
+    
+    
+        it(`should not create user if email in use`,(done)=>{
+            var email = "mark@example.com";
+            supertest(app)
+            .post(`/users/`)
+            .send({email: users[0].email,
+                   password: "password123"
+                
+            })
+            .expect(400)
+            .end(done)
+            })
+            
+        
+
+    })
 
 
 

@@ -48,7 +48,6 @@ var access = "auth";
 var token = jwt.sign({_id: this._id.toHexString(), access}, `abc123`).toString();
 this.tokens.push({access, token});
 
-
 return this.save().then(()=>{
     return token
 })
@@ -92,14 +91,13 @@ UserSchema.methods.toJSON = function(){
 }
 
 
-// mongoose middleware 
+// mongoose middleware - before the save function
 UserSchema.pre('save', function(next){
     var user = this;
     if(user.isModified('password')){
     bcrypt.genSalt(10, (err, salt)=>{
     bcrypt.hash(user.password, salt, (err, hash)=>{
         user.password = hash;
-        console.log("got here"); 
         next();
     
     })
