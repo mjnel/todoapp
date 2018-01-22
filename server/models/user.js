@@ -53,15 +53,19 @@ return this.save().then(()=>{
 })
 }
    
+   
+   
+   
+   
 // Model Method
 // this - Model as the this binding
 UserSchema.statics.findByToken = function(token){
    var User =  this;
    var decoded;
- 
  //allows code to be ran in the try block, if any errors, then run the catch code and contintue
    try {
       decoded = jwt.verify(token, `abc123`);
+      console.log(token);
       
    }   catch(e){
        
@@ -74,20 +78,67 @@ UserSchema.statics.findByToken = function(token){
 
     return User.findOne({
         _id: decoded._id,
-        'tokens.token': token,
-        'tokens.access': "auth"
+        'tokens.access': "auth",
+        'tokens.token': token
+
     });
-
-
 }
+
+//this = model
+UserSchema.statics.findByCredentials = function(email, password){
+    var User = this; 
+            
+           return User.findOne({email}).then((user)=>{
+               if (!user){
+                   return Promise.reject()
+               }
+           
+               return new Promise((resolve, reject)=>{
+                bcrypt.compare(password, user.password,(err, response)=>{
+                    if(err){
+                    return reject(err)
+                    }
+                    return resolve(user)
+                })    
+               })   
+           
+               
+               
+               
+               
+           })
+           
+           
+           
+           
+
+
+                
+                
+            
+         
+
+    
+    
+}
+
+
+
+
+
+//findbyCred
+//take email and pass as args and return promise /err 
+
+
+
 
    
 
-// Overriding method that dertermines what get sent back when a ongoose model is converted into JSON 
+// Overriding method that dertermines what get sent back when a mongoose model is converted into JSON 
 UserSchema.methods.toJSON = function(){
-   var user = this;
-   var userObject = user.toObject();
-   return _.pick(userObject, ['_id', 'email']); 
+  var user = this;
+  var userObject = user.toObject();
+  return _.pick(userObject, ['_id', 'email']); 
 }
 
 
