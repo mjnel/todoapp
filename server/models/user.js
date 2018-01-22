@@ -65,8 +65,7 @@ UserSchema.statics.findByToken = function(token){
  //allows code to be ran in the try block, if any errors, then run the catch code and contintue
    try {
       decoded = jwt.verify(token, `abc123`);
-      console.log(token);
-      
+
    }   catch(e){
        
        return Promise.reject();
@@ -95,17 +94,12 @@ UserSchema.statics.findByCredentials = function(email, password){
            
                return new Promise((resolve, reject)=>{
                 bcrypt.compare(password, user.password,(err, response)=>{
-                    if(err){
+                    if(!response){
                     return reject(err)
                     }
                     return resolve(user)
                 })    
                })   
-           
-               
-               
-               
-               
            })
            
            
