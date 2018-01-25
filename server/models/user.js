@@ -52,6 +52,20 @@ return this.save().then(()=>{
     return token
 })
 }
+
+UserSchema.methods.removeToken = function (token){
+    var user = this;
+    
+//$pull -mongodb operator lets you pull items from an array which meet certin criteria     
+// pulling any token object in the tokens array which has the same token as the one passed in - entire object 
+   return user.update({
+        $pull :{
+            tokens: {token}
+            
+        }
+    })
+    
+}
    
    
    
