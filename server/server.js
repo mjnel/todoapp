@@ -23,9 +23,10 @@ app.use(bodyParser.json())
 // return value is a function which is given back to express. Send JSON to express.
 
 
-app.post(`/todos`, (req,res)=>{
+app.post(`/todos`,authenticate, (req,res)=>{
     var todo = new Todo({
-		text : req.body.text
+		text : req.body.text,
+		_creator: req.user._id
 	})
 
   todo.save().then((doc)=>{
@@ -36,8 +37,14 @@ app.post(`/todos`, (req,res)=>{
 });
 
 
-app.get(`/todos`, (req,res)=>{
-  Todo.find().then((todos)=>{
+// https://www.udemy.com/the-complete-nodejs-developer-course-2/learn/v4/t/lecture/5795032?start=0
+//07:22
+
+
+app.get(`/todos`,authenticate, (req,res)=>{
+  Todo.find({
+      _creator: req.user._id
+  }).then((todos)=>{
     res.send({todos})
   }).catch((e)=>{
     res.status(400).send(e)

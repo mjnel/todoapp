@@ -33,15 +33,21 @@ const users = [
 const todos = [
   {
      _id: new ObjectID(),
-    text: "firstTestToDo"
+    text: "firstTestToDo",
+    _creator : userOneId
   },
   {
     _id: new ObjectID(),
     text:"secondToDo",
     completed: true,
-    completedAt: 3333
+    completedAt: 3333,
+    _creator : userTwoId
+    
   }
 ]
+
+
+
 
 const populateToDos = (done)=>{
      Todo.remove({}).then(()=> {
