@@ -22,6 +22,7 @@ describe(`POST /todos`,() =>{
 
   supertest(app)
   .post(`/todos`)
+  .set(`x-auth`, users[0].tokens[0].token)
   .send({text})
   .expect(200)
   .expect((res)=>{
@@ -43,6 +44,7 @@ describe(`POST /todos`,() =>{
 it(`should not create a todo with invalid data`,(done)=>{
 supertest(app)
   .post(`/todos`)
+  .set(`x-auth`, users[0].tokens[0].token)
   .send({})
   .expect(400)
   .end((err, res)=>{
@@ -61,14 +63,17 @@ supertest(app)
 
 
 
+
+
 describe(`GET /todos`,() =>{
  it(`should get all the todos`,(done)=>{
 
   supertest(app)
   .get(`/todos`)
+  .set(`x-auth`, users[0].tokens[0].token)
   .expect(200)
   .expect((res)=>{
-      expect(res.body.todos.length).toBe(2);
+      expect(res.body.todos.length).toBe(1);
   })
 .end(done)
    
@@ -89,6 +94,7 @@ describe(`GET /todos/:id`, ()=>{
     it(`should return todo doc`,(done)=>{
         supertest(app)
         .get(`/todos/${todos[0]._id.toHexString()}`)
+        .set(`x-auth`, users[0].tokens[0].token)
         .expect(200)
         .expect((res)=>{
             expect(res.body.text).toBe(todos[0].text)         
@@ -96,10 +102,22 @@ describe(`GET /todos/:id`, ()=>{
             .end(done)
     })
     
-      it('should return 404 if todo not found', (done) => {
+        it(`should not return a todo doc created by another user`,(done)=>{
+        supertest(app)
+        .get(`/todos/${todos[1]._id.toHexString()}`)
+        .set(`x-auth`, users[0].tokens[0].token)
+        .expect(404)
+        .end(done)
+    })
+    
+    
+    
+    
+     it('should return 404 if todo not found', (done) => {
     var hexId = new ObjectID().toHexString();
      supertest(app)
       .get(`/todos/${hexId}`)
+      .set(`x-auth`, users[0].tokens[0].token)
       .expect(404)
       .end(done);
   });
@@ -107,6 +125,7 @@ describe(`GET /todos/:id`, ()=>{
     it('should return 404 for an invalid ObjectID', (done) => {
      supertest(app)
       .get(`/todos/123`)
+      .set(`x-auth`, users[0].tokens[0].token)
       .expect(404)
       .end(done);
   });
@@ -120,6 +139,7 @@ describe(`DELETE /todos/:id`, ()=>{
         var hexID = todos[0]._id.toHexString();
         supertest(app)
         .delete(`/todos/${hexID}`)
+        .set(`x-auth`, users[0].tokens[0].token)
         .expect(200)
         .expect((res)=>{
             expect(res.body.todo._id).toBe(hexID);    
@@ -138,6 +158,30 @@ describe(`DELETE /todos/:id`, ()=>{
     })
     
     
+        it(`shouldn't delete a todo document created by someone else`,(done)=>{
+        var hexID = todos[0]._id.toHexString();
+        supertest(app)
+        .delete(`/todos/${hexID}`)
+        .set(`x-auth`, users[1].tokens[0].token)
+        .expect(404)
+        
+            .end((err, res)=>{
+                if(err){
+                    return done(err)
+                }
+                Todo.findById(hexID).then((todo_del)=>{
+                    expect(todo_del).toExist()
+                    done()
+                }).catch((e)=>{
+                    done(e)
+                })
+            })
+    })
+    
+    
+    
+    
+    
     //done is a Mocha thing 
     //end is a supertest thing
     
@@ -145,6 +189,7 @@ describe(`DELETE /todos/:id`, ()=>{
         var hexID = new ObjectID()
         supertest(app)
         .delete(`/todos/${hexID}`)
+        .set(`x-auth`, users[1].tokens[0].token)
         .expect(404)
         .end(done)
     })
@@ -152,6 +197,7 @@ describe(`DELETE /todos/:id`, ()=>{
     it(`should return a 404 for a Todo which isn't correct`, (done)=>{
         supertest(app)
         .delete(`/todos/123`)
+        .set(`x-auth`, users[1].tokens[0].token)
         .expect(404)
         .end(done)
     })
@@ -334,7 +380,7 @@ describe(`PATCH/todos/:id`, ()=>{
                     return done(err)
                 }
                 User.findById(users[1]._id).then((user)=>{
-                    expect(user.tokens[0]).toInclude({
+                    expect(user.tokens[1]).toInclude({
                         access: `auth`,
                         token: res.headers[`x-auth` ]
                     })
@@ -364,7 +410,7 @@ describe(`PATCH/todos/:id`, ()=>{
                     return done(err)
                 }
                 User.findById(users[1]._id).then((user)=>{
-                    expect(user.tokens.length).toBe(0)
+                    expect(user.tokens.length).toBe(1)
                     done()
                 }).catch((e)=>{
                     done(e); 

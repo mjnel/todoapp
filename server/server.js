@@ -52,14 +52,17 @@ app.get(`/todos`,authenticate, (req,res)=>{
 })
 
 
-app.get(`/todos/:id`, (req, res)=>{
+app.get(`/todos/:id`, authenticate, (req, res)=>{
   var id = req.params.id
   if(!isValidID(id)){
     console.log("The ID you are requesting with is invalid")
     return res.status(404).send({})
     }
     
-      Todo.findById(id).then((todo)=>{
+      Todo.findOne({
+         _creator: req.user._id,
+         _id: id
+      }).then((todo)=>{
         if(!todo){
           console.log("the ID you are requesting with is not in the DB")
          return  res.status(404).send({})
@@ -71,13 +74,20 @@ app.get(`/todos/:id`, (req, res)=>{
     })
   
   
-  app.delete(`/todos/:id`, (req, res)=>{
+  
+  
+  
+  app.delete(`/todos/:id`, authenticate, (req, res)=>{
     var id = req.params.id
     if(!isValidID(id)){
       console.log("The ID you are requesting with is invalid")
      return res.status(404).send({})}
       
-       Todo.findByIdAndRemove(id).then((todo)=>{
+
+       Todo.findOneAndDelete({
+        _creator: req.user._id,
+         _id: id
+      }).then((todo)=>{
          if(!todo){
            console.log("the ID you are requesting with is not in the DB")
           return res.status(404).send({})

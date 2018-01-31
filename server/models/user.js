@@ -84,7 +84,6 @@ UserSchema.statics.findByToken = function(token){
        
        return Promise.reject();
 
-       
    }
 
 // reason why we are searching on more than one is if a user has more than one token
