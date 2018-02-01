@@ -215,6 +215,7 @@ describe(`PATCH/todos/:id`, ()=>{
         
         supertest(app)
         .patch(`/todos/${hexID}`)
+        .set(`x-auth`, users[0].tokens[0].token)
          .send(updateBoo)
 
         .expect(200)
@@ -240,6 +241,27 @@ describe(`PATCH/todos/:id`, ()=>{
         })
         
     })
+    
+    
+    
+    
+        it(`shouldnt allow a user to update a ToDo created by someone else`, (done)=>{
+        var hexID = todos[0]._id.toHexString();
+        var updateBoo = {completed: true,
+                        text: "updatedTextOnFirstToDo"
+        };
+        
+        supertest(app)
+        .patch(`/todos/${hexID}`)
+        .set(`x-auth`, users[1].tokens[0].token)
+         .send(updateBoo)
+        .expect(404)
+        .end(done)
+        
+    })
+        
+    
+    
         
 
         
@@ -252,6 +274,7 @@ describe(`PATCH/todos/:id`, ()=>{
         supertest(app)
         .patch(`/todos/${hexID}`)
         .send(updateText)
+        .set(`x-auth`, users[1].tokens[0].token)
         .expect(200)
         .expect((res)=>{
             expect(res.body.updatedToDo.completed).toBe(false)

@@ -84,7 +84,7 @@ app.get(`/todos/:id`, authenticate, (req, res)=>{
      return res.status(404).send({})}
       
 
-       Todo.findOneAndDelete({
+       Todo.findOneAndRemove({
         _creator: req.user._id,
          _id: id
       }).then((todo)=>{
@@ -101,7 +101,7 @@ app.get(`/todos/:id`, authenticate, (req, res)=>{
   
   
   
-app.patch(`/todos/:id`, (req,res)=>{
+app.patch(`/todos/:id`, authenticate, (req,res)=>{
   var id = req.params.id
   
   // pick = takes an object and takes an array of properties 
@@ -121,7 +121,9 @@ app.patch(`/todos/:id`, (req,res)=>{
      
      // $set means set the id which is found by the findbyidandupsdate 
      //new returns the newly updated document
-     Todo.findByIdAndUpdate(id,{$set: body}, {new: true}).then((updatedToDo)=>{
+    
+     
+     Todo.findOneAndUpdate({_id: id, _creator: req.user._id},{$set: body}, {new: true}).then((updatedToDo)=>{
       if(!updatedToDo){
           return res.status(404).send({})
       }
