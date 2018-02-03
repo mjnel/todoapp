@@ -45,7 +45,7 @@ var UserSchema  = new mongoose.Schema({
 // this = individual document
 UserSchema.methods.generateAuthToken = function (){
 var access = "auth";
-var token = jwt.sign({_id: this._id.toHexString(), access}, `abc123`).toString();
+var token = jwt.sign({_id: this._id.toHexString(), access}, process.env.JWT_Secret).toString();
 this.tokens.push({access, token});
 
 return this.save().then(()=>{
@@ -78,7 +78,7 @@ UserSchema.statics.findByToken = function(token){
    var decoded;
  //allows code to be ran in the try block, if any errors, then run the catch code and contintue
    try {
-      decoded = jwt.verify(token, `abc123`);
+      decoded = jwt.verify(token, process.env.JWT_Secret);
 
    }   catch(e){
        
