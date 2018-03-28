@@ -5,7 +5,7 @@ const _ = require("lodash");
 const bcrypt = require("bcryptjs")
 
 
-//unique - property email does not have same email as any other documents in the collection 
+//unique - property email does not have same email as any other documents in the collection
 // validator
 
 
@@ -30,23 +30,33 @@ var UserSchema  = new mongoose.Schema({
             access: {
                 type: String,
                 required: true
-                
+
             },
             token: {
                 type: String,
                 required: true
             }
         }]
-})
+},
+{
+  usePushEach: true
+
+}
+)
 
 
 
-//instance method - per document + no arrow to bind this 
+//instance method - per document + no arrow to bind this
 // this = individual document
 UserSchema.methods.generateAuthToken = function (){
 var access = "auth";
 var token = jwt.sign({_id: this._id.toHexString(), access}, process.env.JWT_Secret).toString();
+// new
+// this.tokens.concat({access, token})
 this.tokens.push({access, token});
+
+
+
 
 return this.save().then(()=>{
     return token
@@ -55,22 +65,22 @@ return this.save().then(()=>{
 
 UserSchema.methods.removeToken = function (token){
     var user = this;
-    
-//$pull -mongodb operator lets you pull items from an array which meet certin criteria     
-// pulling any token object in the tokens array which has the same token as the one passed in - entire object 
+
+//$pull -mongodb operator lets you pull items from an array which meet certin criteria
+// pulling any token object in the tokens array which has the same token as the one passed in - entire object
    return user.update({
         $pull :{
             tokens: {token}
-            
+
         }
     })
-    
+
 }
-   
-   
-   
-   
-   
+
+
+
+
+
 // Model Method
 // this - Model as the this binding
 UserSchema.statics.findByToken = function(token){
@@ -81,7 +91,7 @@ UserSchema.statics.findByToken = function(token){
       decoded = jwt.verify(token, process.env.JWT_Secret);
 
    }   catch(e){
-       
+
        return Promise.reject();
 
    }
@@ -98,35 +108,35 @@ UserSchema.statics.findByToken = function(token){
 
 //this = model
 UserSchema.statics.findByCredentials = function(email, password){
-    var User = this; 
-            
+    var User = this;
+
            return User.findOne({email}).then((user)=>{
                if (!user){
                    return Promise.reject()
                }
-           
+
                return new Promise((resolve, reject)=>{
                 bcrypt.compare(password, user.password,(err, response)=>{
                     if(!response){
                     return reject(err)
                     }
                     return resolve(user)
-                })    
-               })   
+                })
+               })
            })
-           
-           
-           
-           
 
 
-                
-                
-            
-         
 
-    
-    
+
+
+
+
+
+
+
+
+
+
 }
 
 
@@ -134,18 +144,18 @@ UserSchema.statics.findByCredentials = function(email, password){
 
 
 //findbyCred
-//take email and pass as args and return promise /err 
+//take email and pass as args and return promise /err
 
 
 
 
-   
 
-// Overriding method that dertermines what get sent back when a mongoose model is converted into JSON 
+
+// Overriding method that dertermines what get sent back when a mongoose model is converted into JSON
 UserSchema.methods.toJSON = function(){
   var user = this;
   var userObject = user.toObject();
-  return _.pick(userObject, ['_id', 'email']); 
+  return _.pick(userObject, ['_id', 'email']);
 }
 
 
@@ -157,7 +167,7 @@ UserSchema.pre('save', function(next){
     bcrypt.hash(user.password, salt, (err, hash)=>{
         user.password = hash;
         next();
-    
+
     })
 })
 

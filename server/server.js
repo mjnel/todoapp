@@ -2,7 +2,7 @@ require(`./config/config.js`);
 
 const express = require("express");
 const bodyParser = require ("body-parser")
-const _ = require("lodash"); 
+const _ = require("lodash");
 const bcrypt = require("bcryptjs")
 
 
@@ -21,6 +21,24 @@ var app = express();
 //app.use = middleware.
 app.use(bodyParser.json())
 // return value is a function which is given back to express. Send JSON to express.
+
+app.post(`/users`, (req,res)=>{
+    var body = _.pick(req.body, [`email`, `password`]);
+    var user = new User(body)
+    user.save().then(()=>{
+        return user.generateAuthToken();
+    }).then((token)=>{
+        // console.log(user)
+      res.header(`x-auth`, token).send(user)
+    }).catch((e)=>{
+        res.status(400).send(e)
+    })
+
+})
+
+
+
+
 
 
 app.post(`/todos`,authenticate, (req,res)=>{
@@ -58,7 +76,7 @@ app.get(`/todos/:id`, authenticate, (req, res)=>{
     console.log("The ID you are requesting with is invalid")
     return res.status(404).send({})
     }
-    
+
       Todo.findOne({
          _creator: req.user._id,
          _id: id
@@ -72,17 +90,17 @@ app.get(`/todos/:id`, authenticate, (req, res)=>{
         res.status(404).send({})
        })
     })
-  
-  
-  
-  
-  
+
+
+
+
+
   app.delete(`/todos/:id`, authenticate, (req, res)=>{
     var id = req.params.id
     if(!isValidID(id)){
       console.log("The ID you are requesting with is invalid")
      return res.status(404).send({})}
-      
+
 
        Todo.findOneAndRemove({
         _creator: req.user._id,
@@ -96,33 +114,33 @@ app.get(`/todos/:id`, authenticate, (req, res)=>{
        }).catch((e)=>{
          console.log(e)
          res.status(400).send({})
-       })  
+       })
   })
-  
-  
-  
+
+
+
 app.patch(`/todos/:id`, authenticate, (req,res)=>{
   var id = req.params.id
-  
-  // pick = takes an object and takes an array of properties 
-  //subset of the things the user passed to us - we don't want the user to update anything they choose 
+
+  // pick = takes an object and takes an array of properties
+  //subset of the things the user passed to us - we don't want the user to update anything they choose
   var body = _.pick(req.body, [`text`, `completed`])
-     
+
       if(!isValidID(id)){
       console.log("The ID you are requesting with is invalid")
       return res.status(404).send({})}
-     
+
       if(_.isBoolean(body.completed)&&body.completed){
          body.completedAt= new Date().getTime();
      }else{
-      body.completed = false; 
-      body.completedAt = null; 
+      body.completed = false;
+      body.completedAt = null;
      }
-     
-     // $set means set the id which is found by the findbyidandupsdate 
+
+     // $set means set the id which is found by the findbyidandupsdate
      //new returns the newly updated document
-    
-     
+
+
      Todo.findOneAndUpdate({_id: id, _creator: req.user._id},{$set: body}, {new: true}).then((updatedToDo)=>{
       if(!updatedToDo){
           return res.status(404).send({})
@@ -133,24 +151,12 @@ app.patch(`/todos/:id`, authenticate, (req,res)=>{
       res.status(400).send({});
      })
 })
-  
+
 //*******************************************************
 
 
 
-app.post(`/users`, (req,res)=>{
-    var body = _.pick(req.body, [`email`, `password`]);
-    var user = new User(body)
-    user.save().then(()=>{
-        return user.generateAuthToken();
-    }).then((token)=>{
-        // console.log(user)
-      res.header(`x-auth`, token).send(user)  
-    }).catch((e)=>{
-        res.status(400).send(e)
-    })
-    
-})
+
 
 
 
@@ -164,12 +170,12 @@ app.post(`/users/login`, (req,res)=>{
    User.findByCredentials(body.email,body.password).then((user)=>{
     //   console.log(user)
         return user.generateAuthToken().then((token)=>{
-            res.header(`x-auth`, token).send(user)  
+            res.header(`x-auth`, token).send(user)
         })
    }).catch((e)=>{
        res.status(400).send({})
    })
-   
+
 
 })
 
@@ -181,18 +187,18 @@ app.delete(`/users/me/token`, authenticate, (req,res) =>{
     }).catch(()=>{
         res.status(400).send()
     })
-    
+
 })
 
-          
-          
-          
-          
-          
-          
-          
 
-    
+
+
+
+
+
+
+
+
 
 
 
@@ -200,7 +206,7 @@ app.delete(`/users/me/token`, authenticate, (req,res) =>{
 
 //FUNCTIONS
 
-let isValidID = (id)=> {  
+let isValidID = (id)=> {
     if (!ObjectID.isValid(id)){
       return (false)
     }else{
@@ -212,9 +218,8 @@ let isValidID = (id)=> {
 
 
 
-app.listen (process.env.PORT, process.env.IP, function (){
-    console.log("Server up @ todoapp-mjnelson.c9users.io");
-})
+app.listen(3000, () => console.log('App listening on 3000.'));
+
 
 
 module.exports ={app}
