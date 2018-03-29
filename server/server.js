@@ -22,23 +22,20 @@ var app = express();
 app.use(bodyParser.json())
 // return value is a function which is given back to express. Send JSON to express.
 
-app.post(`/users`, (req,res)=>{
+
+
+
+app.post(`/users`, async (req,res)=>{
+  try{
     var body = _.pick(req.body, [`email`, `password`]);
-    var user = new User(body)
-    user.save().then(()=>{
-        return user.generateAuthToken();
-    }).then((token)=>{
-        // console.log(user)
-      res.header(`x-auth`, token).send(user)
-    }).catch((e)=>{
-        res.status(400).send(e)
-    })
-
+    var userInstance = new User(body);
+    await userInstance.save();
+    const token = await userInstance.generateAuthToken();
+    res.header(`x-auth`, token).send(userInstance)
+  }catch(e){
+res.status(400).send(e)
+  }
 })
-
-
-
-
 
 
 app.post(`/todos`,authenticate, (req,res)=>{
@@ -94,28 +91,87 @@ app.get(`/todos/:id`, authenticate, (req, res)=>{
 
 
 
+// to do
 
-  app.delete(`/todos/:id`, authenticate, (req, res)=>{
+  // app.delete(`/todos/:id`, authenticate, (req, res)=>{
+  //   var id = req.params.id
+  //   if(!isValidID(id)){
+  //     console.log("The ID you are requesting with is invalid")
+  //    return res.status(404).send({})}
+  //
+  //
+  //      Todo.findOneAndRemove({
+  //       _creator: req.user._id,
+  //        _id: id
+  //     }).then((todo)=>{
+  //        if(!todo){
+  //          console.log("the ID you are requesting with is not in the DB")
+  //         return res.status(404).send({})
+  //        }
+  //       res.status(200).send({todo})
+  //      }).catch((e)=>{
+  //        console.log(e)
+  //        res.status(400).send({})
+  //      })
+  // })
+
+
+  // app.delete(`/todos/:id`, authenticate, (req, res)=>{
+  //   var id = req.params.id
+  //   if(!isValidID(id)){
+  //     console.log("The ID you are requesting with is invalid")
+  //    return res.status(404).send({})}
+  //
+  //
+  //      Todo.findOneAndRemove({
+  //       _creator: req.user._id,
+  //        _id: id
+  //     }).then((todo)=>{
+  //        if(!todo){
+  //          console.log("the ID you are requesting with is not in the DB")
+  //         return res.status(404).send({})
+  //        }
+  //       res.status(200).send({todo})
+  //      }).catch((e)=>{
+  //        console.log(e)
+  //        res.status(400).send({})
+  //      })
+  // })
+
+
+
+
+
+  app.delete(`/todos/:id`, authenticate, async (req, res)=>{
     var id = req.params.id
     if(!isValidID(id)){
       console.log("The ID you are requesting with is invalid")
      return res.status(404).send({})}
 
+     try {
+       const todo = await Todo.findOneAndRemove({
+         _creator: req.user._id,
+        _id: id
+           })
+           if(!todo){
+             console.log("the ID you are requesting with is not in the DB")
+            return res.status(404).send({})
+               }
+               res.status(200).send({todo})
+             }catch(e){
+               res.status(400).send({})
 
-       Todo.findOneAndRemove({
-        _creator: req.user._id,
-         _id: id
-      }).then((todo)=>{
-         if(!todo){
-           console.log("the ID you are requesting with is not in the DB")
-          return res.status(404).send({})
-         }
-        res.status(200).send({todo})
-       }).catch((e)=>{
-         console.log(e)
-         res.status(400).send({})
-       })
+
+             }
+
   })
+
+
+
+
+
+
+
 
 
 
@@ -165,31 +221,60 @@ app.get(`/users/me`, authenticate, (req, res)=>{
 })
 
 
-app.post(`/users/login`, (req,res)=>{
+// app.post(`/users/login`, (req,res)=>{
+//     var body = _.pick(req.body, [`email`, `password`]);
+//    User.findByCredentials(body.email,body.password).then((user)=>{
+//     //   console.log(user)
+//         return user.generateAuthToken().then((token)=>{
+//             res.header(`x-auth`, token).send(user)
+//         })
+//    }).catch((e)=>{
+//        res.status(400).send({})
+//    })
+//
+//
+// })
+
+app.post(`/users/login`, async (req,res)=>{
+  try{
     var body = _.pick(req.body, [`email`, `password`]);
-   User.findByCredentials(body.email,body.password).then((user)=>{
-    //   console.log(user)
-        return user.generateAuthToken().then((token)=>{
-            res.header(`x-auth`, token).send(user)
-        })
-   }).catch((e)=>{
-       res.status(400).send({})
-   })
+    const user = await User.findByCredentials(body.email,body.password)
+    const token = await user.generateAuthToken()
+    res.header(`x-auth`, token).send(user)
+  }catch(e){
+    res.status(400).send({})
+  }
 
 
-})
-
-
-app.delete(`/users/me/token`, authenticate, (req,res) =>{
-    //instance method
-    req.user.removeToken(req.token).then(()=>{
-        res.status(200).send()
-    }).catch(()=>{
-        res.status(400).send()
-    })
 
 })
 
+
+
+
+// app.delete(`/users/me/token`, authenticate, (req,res) =>{
+//     //instance method
+//     req.user.removeToken(req.token).then(()=>{
+//         res.status(200).send()
+//     }).catch(()=>{
+//         res.status(400).send()
+//     })
+//
+// })
+
+
+app.delete(`/users/me/token`, authenticate, async (req,res) =>{
+    try{
+      await req.user.removeToken(req.token)
+      res.status(200).send()
+
+    }catch(e){
+      res.status(400).send()
+
+
+    }
+
+})
 
 
 
