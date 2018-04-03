@@ -38,17 +38,18 @@ res.status(400).send(e)
 })
 
 
-app.post(`/todos`,authenticate, (req,res)=>{
-    var todo = new Todo({
+app.post(`/todos`,authenticate, async (req,res)=>{
+  try{
+    let todo = new Todo({
 		text : req.body.text,
 		_creator: req.user._id
 	})
+  const savedToDo = await todo.save()
+  res.status(200).send(savedToDo)
+  }catch(e){
+  res.status(400).send(e)
+  }
 
-  todo.save().then((doc)=>{
-    res.send(doc)
-  }).catch((e)=>{
-    res.status(400).send(e)
-  })
 });
 
 
@@ -56,89 +57,45 @@ app.post(`/todos`,authenticate, (req,res)=>{
 //07:22
 
 
-app.get(`/todos`,authenticate, (req,res)=>{
-  Todo.find({
-      _creator: req.user._id
-  }).then((todos)=>{
-    res.send({todos})
-  }).catch((e)=>{
+app.get(`/todos`,authenticate, async (req,res)=>{
+  try{
+    let foundToDo = await Todo.find({
+        _creator: req.user._id
+    })
+    res.status(200).send(foundToDo)
+
+  }catch(e){
     res.status(400).send(e)
-  })
+  }
+
 })
 
 
-app.get(`/todos/:id`, authenticate, (req, res)=>{
+
+
+
+app.get(`/todos/:id`, authenticate, async (req, res)=>{
   var id = req.params.id
   if(!isValidID(id)){
     console.log("The ID you are requesting with is invalid")
     return res.status(404).send({})
     }
 
-      Todo.findOne({
+  try{
+    const gottenToDo = await Todo.findOne({
          _creator: req.user._id,
          _id: id
-      }).then((todo)=>{
-        if(!todo){
-          console.log("the ID you are requesting with is not in the DB")
-         return  res.status(404).send({})
-        }
-        res.status(200).send(todo)
-        }).catch((e)=>{
-        res.status(404).send({})
-       })
+      })
+  if(!gottenToDo){
+    console.log("the ID you are requesting with is not in the DB");
+    return res.status(404).send({})
+  }
+  res.status(200).send(gottenToDo)
+  }catch(e){
+    res.status(404).send({})
+  }
+
     })
-
-
-
-
-// to do
-
-  // app.delete(`/todos/:id`, authenticate, (req, res)=>{
-  //   var id = req.params.id
-  //   if(!isValidID(id)){
-  //     console.log("The ID you are requesting with is invalid")
-  //    return res.status(404).send({})}
-  //
-  //
-  //      Todo.findOneAndRemove({
-  //       _creator: req.user._id,
-  //        _id: id
-  //     }).then((todo)=>{
-  //        if(!todo){
-  //          console.log("the ID you are requesting with is not in the DB")
-  //         return res.status(404).send({})
-  //        }
-  //       res.status(200).send({todo})
-  //      }).catch((e)=>{
-  //        console.log(e)
-  //        res.status(400).send({})
-  //      })
-  // })
-
-
-  // app.delete(`/todos/:id`, authenticate, (req, res)=>{
-  //   var id = req.params.id
-  //   if(!isValidID(id)){
-  //     console.log("The ID you are requesting with is invalid")
-  //    return res.status(404).send({})}
-  //
-  //
-  //      Todo.findOneAndRemove({
-  //       _creator: req.user._id,
-  //        _id: id
-  //     }).then((todo)=>{
-  //        if(!todo){
-  //          console.log("the ID you are requesting with is not in the DB")
-  //         return res.status(404).send({})
-  //        }
-  //       res.status(200).send({todo})
-  //      }).catch((e)=>{
-  //        console.log(e)
-  //        res.status(400).send({})
-  //      })
-  // })
-
-
 
 
 
@@ -175,9 +132,8 @@ app.get(`/todos/:id`, authenticate, (req, res)=>{
 
 
 
-app.patch(`/todos/:id`, authenticate, (req,res)=>{
+app.patch(`/todos/:id`, authenticate, async (req,res)=>{
   var id = req.params.id
-
   // pick = takes an object and takes an array of properties
   //subset of the things the user passed to us - we don't want the user to update anything they choose
   var body = _.pick(req.body, [`text`, `completed`])
@@ -186,7 +142,7 @@ app.patch(`/todos/:id`, authenticate, (req,res)=>{
       console.log("The ID you are requesting with is invalid")
       return res.status(404).send({})}
 
-      if(_.isBoolean(body.completed)&&body.completed){
+      if(_.isBoolean(body.completed) && body.completed){
          body.completedAt= new Date().getTime();
      }else{
       body.completed = false;
@@ -195,18 +151,14 @@ app.patch(`/todos/:id`, authenticate, (req,res)=>{
 
      // $set means set the id which is found by the findbyidandupsdate
      //new returns the newly updated document
-
-
-     Todo.findOneAndUpdate({_id: id, _creator: req.user._id},{$set: body}, {new: true}).then((updatedToDo)=>{
-      if(!updatedToDo){
-          return res.status(404).send({})
-      }
-      res.send({updatedToDo})
-     }).catch((e)=>{
-      console.log(e)
-      res.status(400).send({});
-     })
+     const todo = await Todo.findOneAndUpdate({_id: id, _creator: req.user._id},{$set: body}, {new: true})
+     if(!todo){
+         return res.status(404).send({})
+     }
+     res.send(todo)
 })
+
+
 
 //*******************************************************
 

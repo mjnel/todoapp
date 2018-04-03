@@ -1,4 +1,4 @@
-const expect  = require ("expect");
+ const expect  = require ("expect");
 const supertest =  require("supertest");
 const {ObjectID} = require("mongodb");
 
@@ -7,11 +7,11 @@ const {Todo} = require("./../models/todo");
 const {User} = require("./../models/user");
 const {todos, populateToDos, users, populateUsers} = require ("./seed/seed");
 
- 
+
 //**************************************
 
 
-// before each test case (before each it block) 
+// before each test case (before each it block)
 beforeEach(populateUsers)
 beforeEach(populateToDos)
 
@@ -73,35 +73,45 @@ describe(`GET /todos`,() =>{
   .set(`x-auth`, users[0].tokens[0].token)
   .expect(200)
   .expect((res)=>{
-      expect(res.body.todos.length).toBe(1);
+      expect(res.body.length).toBe(1);
   })
 .end(done)
-   
+
  })
- 
+
 
 })
 
 
-//invalid objectID = 404 
-// veritfy valid object ID - but no doc = 404 
+//invalid objectID = 404
+// veritfy valid object ID - but no doc = 404
 //pass in object ID which does match a doc = get response in body
 
-//toHexString is a method on the Object ID which converts the objecr ID to a string 
+//toHexString is a method on the Object ID which converts the objecr ID to a string
 
 describe(`GET /todos/:id`, ()=>{
-    
+
+
+
     it(`should return todo doc`,(done)=>{
-        supertest(app)
-        .get(`/todos/${todos[0]._id.toHexString()}`)
-        .set(`x-auth`, users[0].tokens[0].token)
-        .expect(200)
-        .expect((res)=>{
-            expect(res.body.text).toBe(todos[0].text)         
-            })
-            .end(done)
-    })
-    
+          supertest(app)
+          .get(`/todos/${todos[0]._id.toHexString()}`)
+          .set(`x-auth`, users[0].tokens[0].token)
+          .expect(200)
+          .expect((res)=>{
+              expect(res.body.text).toBe(todos[0].text)
+              })
+              .end(done)
+      })
+
+
+
+
+
+
+
+
+
         it(`should not return a todo doc created by another user`,(done)=>{
         supertest(app)
         .get(`/todos/${todos[1]._id.toHexString()}`)
@@ -109,10 +119,10 @@ describe(`GET /todos/:id`, ()=>{
         .expect(404)
         .end(done)
     })
-    
-    
-    
-    
+
+
+
+
      it('should return 404 if todo not found', (done) => {
     var hexId = new ObjectID().toHexString();
      supertest(app)
@@ -121,7 +131,7 @@ describe(`GET /todos/:id`, ()=>{
       .expect(404)
       .end(done);
   });
-  
+
     it('should return 404 for an invalid ObjectID', (done) => {
      supertest(app)
       .get(`/todos/123`)
@@ -129,7 +139,7 @@ describe(`GET /todos/:id`, ()=>{
       .expect(404)
       .end(done);
   });
-  
+
 })
 
 
@@ -142,7 +152,7 @@ describe(`DELETE /todos/:id`, ()=>{
         .set(`x-auth`, users[0].tokens[0].token)
         .expect(200)
         .expect((res)=>{
-            expect(res.body.todo._id).toBe(hexID);    
+            expect(res.body.todo._id).toBe(hexID);
             })
             .end((err, res)=>{
                 if(err){
@@ -156,15 +166,15 @@ describe(`DELETE /todos/:id`, ()=>{
                 })
             })
     })
-    
-    
+
+
         it(`shouldn't delete a todo document created by someone else`,(done)=>{
         var hexID = todos[0]._id.toHexString();
         supertest(app)
         .delete(`/todos/${hexID}`)
         .set(`x-auth`, users[1].tokens[0].token)
         .expect(404)
-        
+
             .end((err, res)=>{
                 if(err){
                     return done(err)
@@ -177,14 +187,14 @@ describe(`DELETE /todos/:id`, ()=>{
                 })
             })
     })
-    
-    
-    
-    
-    
-    //done is a Mocha thing 
+
+
+
+
+
+    //done is a Mocha thing
     //end is a supertest thing
-    
+
     it(`should return a 404 for a Todo which isn't in the db`, (done)=>{
         var hexID = new ObjectID()
         supertest(app)
@@ -193,7 +203,7 @@ describe(`DELETE /todos/:id`, ()=>{
         .expect(404)
         .end(done)
     })
-    
+
     it(`should return a 404 for a Todo which isn't correct`, (done)=>{
         supertest(app)
         .delete(`/todos/123`)
@@ -206,13 +216,13 @@ describe(`DELETE /todos/:id`, ()=>{
 
 
 describe(`PATCH/todos/:id`, ()=>{
-    
+
     it(`should update the ToDo`, (done)=>{
         var hexID = todos[0]._id.toHexString();
         var updateBoo = {completed: true,
                         text: "updatedTextOnFirstToDo"
         };
-        
+
         supertest(app)
         .patch(`/todos/${hexID}`)
         .set(`x-auth`, users[0].tokens[0].token)
@@ -221,7 +231,7 @@ describe(`PATCH/todos/:id`, ()=>{
         .expect(200)
         .expect((res)=>{
             // console.log(res.body)
-            expect(res.body.updatedToDo.text).toBe(updateBoo.text);
+            expect(res.body.text).toBe(updateBoo.text);
 
 
         })
@@ -230,68 +240,68 @@ describe(`PATCH/todos/:id`, ()=>{
                 return done(err)
             }
              Todo.findById(hexID).then((todo_update)=>{
-            expect(res.body.updatedToDo.completed).toBe(true)
-            
-            expect(typeof res.body.updatedToDo.completedAt).toBe('number')
+            expect(res.body.completed).toBe(true)
+
+            expect(typeof res.body.completedAt).toBe('number')
             done()
-                 
+
         }).catch((e)=>{
             // console.log(e)
             done(e)
         })
         })
-        
+
     })
-    
-    
-    
-    
+
+
+
+
         it(`shouldnt allow a user to update a ToDo created by someone else`, (done)=>{
         var hexID = todos[0]._id.toHexString();
         var updateBoo = {completed: true,
                         text: "updatedTextOnFirstToDo"
         };
-        
+
         supertest(app)
         .patch(`/todos/${hexID}`)
         .set(`x-auth`, users[1].tokens[0].token)
          .send(updateBoo)
         .expect(404)
         .end(done)
-        
-    })
-        
-    
-    
-        
 
-        
-        
-        
+    })
+
+
+
+
+
+
+
+
     it(`should clear completedAt when todo is not completed`, (done)=>{
         var hexID = todos[1]._id.toHexString();
         var updateText = {completed: false};
-        
+
         supertest(app)
         .patch(`/todos/${hexID}`)
         .send(updateText)
         .set(`x-auth`, users[1].tokens[0].token)
         .expect(200)
         .expect((res)=>{
-            expect(res.body.updatedToDo.completed).toBe(false)
-            expect(res.body.updatedToDo.completedAt).toBeFalsy()
+            expect(res.body.completed).toBe(false)
+            expect(res.body.completedAt).toBeFalsy()
 
         })
         .end(done)
 
     })
-    
-      
+
+
 
     })
-    
+
     describe(`GET/users/me`,()=>{
-        
+
         it(`should return user if authenticated`, (done)=>{
             supertest(app)
             .get(`/users/me`)
@@ -304,10 +314,10 @@ describe(`PATCH/todos/:id`, ()=>{
             })
             .end(done)
         })
-      
-      
-        
-        
+
+
+
+
         it(`should return a 401 if not authenticated`, (done)=>{
             supertest(app)
             .get(`/users/me`)
@@ -318,16 +328,16 @@ describe(`PATCH/todos/:id`, ()=>{
             .end(done)
 
         })
-        
+
     })
-    
-    
+
+
     describe(`POST /users`, ()=>{
-        
+
         it(`should create a user`,(done)=>{
         var email = "mark_nelson@live.co.uk"
         var password = "password1234"
-            
+
         supertest(app)
         .post(`/users`)
         .send({email, password})
@@ -346,15 +356,15 @@ describe(`PATCH/todos/:id`, ()=>{
                 expect(user.password).not.toBe(password);
                 done();
             }).catch((e)=>{done(e)})
-            
-            
+
+
         })
         })
-        
-        
-        
-        
-        
+
+
+
+
+
         it(`should return valiation errors if request is invalid`,(done)=>{
             var email = "test";
             supertest(app)
@@ -365,29 +375,29 @@ describe(`PATCH/todos/:id`, ()=>{
             .expect(400)
             .end(done)
             })
-            
-        
-    
-    
+
+
+
+
         it(`should not create user if email in use`,(done)=>{
             var email = "mark@example.com";
             supertest(app)
             .post(`/users/`)
             .send({email: users[0].email,
                   password: "password123"
-                
+
             })
             .expect(400)
             .end(done)
             })
-            
-        
+
+
 
     })
-    
-    
+
+
     describe(`POST /users/login`, ()=>{
-        
+
         it(`should login user and return auth token`, (done)=>{
             supertest(app)
             .post(`/users/login`)
@@ -396,8 +406,8 @@ describe(`PATCH/todos/:id`, ()=>{
             })
             .expect(200)
             .expect((res)=>{
-            expect(res.headers[`x-auth`]).toBeTruthy();     
-                
+            expect(res.headers[`x-auth`]).toBeTruthy();
+
             })
             .end((err, res)=>{
                 if(err){
@@ -410,15 +420,15 @@ describe(`PATCH/todos/:id`, ()=>{
                     })
                     done()
                 }).catch((e)=>{
-                    done(e); 
+                    done(e);
                 })
             })
         })
 
-            
-       
-        
-        
+
+
+
+
         it (`should reject invalid login`, (done)=>{
             supertest(app)
             .post(`/users/login`)
@@ -437,20 +447,20 @@ describe(`PATCH/todos/:id`, ()=>{
                     expect(user.tokens.length).toBe(1)
                     done()
                 }).catch((e)=>{
-                    done(e); 
+                    done(e);
                 })
             })
-            
-            
-     
-            
+
+
+
+
         })
-        
+
     })
-    
-    
+
+
     describe(`DELETE/users/me/token`, ()=>{
-        
+
         it(`should remove auth token on logout`, (done)=>{
             supertest(app)
             .delete(`/users/me/token`)
@@ -464,13 +474,11 @@ describe(`PATCH/todos/:id`, ()=>{
                     expect(user.tokens.length).toBe(0)
                     done()
                 }).catch((e)=>{
-                    done(e); 
+                    done(e);
                 })
             })
 
-            
+
         })
-        
+
     })
-
-
